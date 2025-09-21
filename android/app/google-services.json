@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "733455434716",
+    "project_id": "kalakrithi-39f00",
+    "storage_bucket": "kalakrithi-39f00.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733455434716:android:ff4a5783b5e9acd8ef8519",
+        "android_client_info": {
+          "package_name": "com.example.kalkrithi1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6x6dQLGcG5iEO3mNfLzsQIDToUQTAfmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
