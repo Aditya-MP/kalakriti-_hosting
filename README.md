@@ -125,10 +125,10 @@ Connects next generation with heritage
 ---
 
 ## 👥 Team Nova Vertex
-Adithya M P (Team Lead) 
-Shreya sharma 
-Ankit Sharma
-Sujith Kumar sha
+Adithya M P (Team Lead), 
+Shreya sharma, 
+Ankit Sharma,
+Sujith Kumar sha,
 Prem Bnedre
 
 ---
