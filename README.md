@@ -148,16 +148,9 @@ Join us in preserving heritage through innovation
 
 "Where every craft has a story, and every artisan has a voice"
 
-Thank YOU
 </div>
 
 # Kalakriti 2.0
-
-## Overview
-
-Kalakriti 2.0 is a cross-platform digital platform for artisans and crafters to instantly create, manage, and showcase their work in digital showrooms. The project leverages Flutter for the frontend and Python (FastAPI) for backend AI-powered storytelling and marketing content generation.
-
----
 
 ## Project Structure
 
