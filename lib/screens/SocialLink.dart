@@ -166,7 +166,7 @@ class SocialLinkState extends State<SocialLink> {
                   CircleAvatar(
                     radius: 30,
                     backgroundImage: NetworkImage(
-                      widget.artisanAvatarUrl ?? 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/6rzwd616_expires_30_days.png',
+                      widget.artisanAvatarUrl ?? 'https://picsum.photos/400/300',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -276,3 +276,4 @@ class SocialLinkState extends State<SocialLink> {
     );
   }
 }
+

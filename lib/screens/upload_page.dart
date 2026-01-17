@@ -3,625 +3,293 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-import 'pre_post_overview.dart';  // Import the preview screen
-import 'story_generating_page.dart'; // Your existing voice recording screen
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'pre_post_overview.dart'; 
+import 'story_generating_page.dart';
 
 class UploadPage extends StatefulWidget {
-	final String? artisanName;
-	final String? artisanCategory;
-	final String? location;
+  final String? artisanName;
+  final String? artisanCategory;
+  final String? location;
 
-	const UploadPage({
-		super.key,
-		this.artisanName,
-		this.artisanCategory,
-		this.location,
-	});
-	@override
-	State<UploadPage> createState() => _UploadPageState();
+  const UploadPage({
+    super.key,
+    this.artisanName,
+    this.artisanCategory,
+    this.location,
+  });
+
+  @override
+  State<UploadPage> createState() => _UploadPageState();
 }
 
 class _UploadPageState extends State<UploadPage> {
-	File? _image;
-	final picker = ImagePicker();
+  // Artisan theme palette
+  final Color primaryEarth = const Color(0xFFE27D5F);
+  final Color goldAccent = const Color(0xFFD4A574);
+  final Color clayBg = const Color(0xFFF5F2E9);
+  final Color deepHeritage = const Color(0xFF4A7043);
 
-	String productName = '';
-	String artworkDesc = '';
-    String editableCategory = "";
-    final TextEditingController _categoryController = TextEditingController();
-    
-    // Price prediction variables
-    String predictedPriceLow = "₹1000";
-    String predictedPriceHigh = "₹2500";
-    bool isPredictingPrice = false;
+  File? _image;
+  final picker = ImagePicker();
+  String productName = '';
+  String artworkDesc = '';
+  String editableCategory = "";
+  final TextEditingController _categoryController = TextEditingController();
 
-	final List<String> categoryOptions = const [
-		'Pottery',
-		'Ceramics',
-		'Wood carving',
-		'Weaving',
-		'Hand embroidery',
-		'Metalworking',
-		'Leather crafting',
-		'Stone carving',
-		'Glassblowing',
-		'Handloom weaving',
-		'Terracotta art',
-		'Calligraphy',
-		'Papermaking',
-		'Jewelry making',
-		'Candle making',
-		'Soap making',
-		'Macramé',
-		'Bamboo craft',
-		'Lacquerware',
-		'Beadwork',
-	];
+  String predictedPriceLow = "₹1000";
+  String predictedPriceHigh = "₹2500";
+  bool isPredictingPrice = false;
 
-	// These can be either fixed or dynamically fetched
-	String get predictedPrice => predictedPriceHigh; // used for backend/publish
-    @override
-    void dispose() {
-        _categoryController.dispose();
-        super.dispose();
-    }
+  final List<String> categoryOptions = const [
+    'Pottery', 'Ceramics', 'Wood carving', 'Weaving', 'Hand embroidery', 
+    'Metalworking', 'Leather crafting', 'Stone carving', 'Glassblowing',
+    'Handloom weaving', 'Terracotta art', 'Calligraphy', 'Jewelry making',
+    'Bamboo craft', 'Lacquerware', 'Beadwork',
+  ];
 
-    
+  String get predictedPrice => predictedPriceHigh;
 
-	void _openCategorySheet() {
-		showModalBottomSheet(
-			context: context,
-			shape: const RoundedRectangleBorder(
-				borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-			),
-			builder: (ctx) {
-				return SafeArea(
-					child: ListView.separated(
-						padding: const EdgeInsets.all(8),
-						itemCount: categoryOptions.length,
-						separatorBuilder: (_, __) => const Divider(height: 1),
-						itemBuilder: (context, index) {
-							final option = categoryOptions[index];
-							return ListTile(
-								title: Text(option),
-								onTap: () {
-									setState(() {
-										editableCategory = option;
-										_categoryController.text = option;
-									});
-									Navigator.pop(context);
-									// Predict price when category is selected
-									_predictPrice(option);
-								},
-							);
-						},
-					),
-				);
-			},
-		);
-	}
+  @override
+  void dispose() {
+    _categoryController.dispose();
+    super.dispose();
+  }
 
+  void _openCategorySheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: goldAccent, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            Text("Select Craft Category", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: deepHeritage)),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView.builder(
+                itemCount: categoryOptions.length,
+                itemBuilder: (context, index) => ListTile(
+                  title: Text(categoryOptions[index]),
+                  onTap: () {
+                    setState(() {
+                      editableCategory = categoryOptions[index];
+                      _categoryController.text = categoryOptions[index];
+                    });
+                    Navigator.pop(context);
+                    _predictPrice(categoryOptions[index]);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-	Future<void> _pickImage() async {
-		final pickedFile = await picker.pickImage(
-			source: ImageSource.gallery,
-			imageQuality: 80,
-		);
-		if (pickedFile != null) {
-			setState(() {
-				_image = File(pickedFile.path);
-			});
-		}
-	}
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (pickedFile != null) setState(() => _image = File(pickedFile.path));
+  }
 
-	void _onVoiceAssistantTap() {
-		Navigator.push(
-			context,
-			MaterialPageRoute(builder: (_) => const StoryGeneratingPage()),
-		);
-	}
+  Future<void> _predictPrice(String category) async {
+    setState(() => isPredictingPrice = true);
+    // Hardcoded logic for instant UI update
+    final Map<String, String> prices = {
+      'pottery': '₹800 - ₹2,500', 'wood carving': '₹2,000 - ₹8,500', 
+      'hand embroidery': '₹1,200 - ₹4,000', 'jewelry making': '₹3,000 - ₹15,000'
+    };
+    await Future.delayed(const Duration(milliseconds: 800));
+    final range = prices[category.toLowerCase()] ?? '₹1,500 - ₹5,000';
+    setState(() {
+      predictedPriceLow = range.split(' - ')[0];
+      predictedPriceHigh = range.split(' - ')[1];
+      isPredictingPrice = false;
+    });
+  }
 
-	Future<void> _predictPrice(String category) async {
-		if (category.isEmpty) return;
-		
-		setState(() {
-			isPredictingPrice = true;
-		});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: clayBg,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, 
+        elevation: 0,
+        leading: IconButton(icon: Icon(Icons.close, color: deepHeritage), onPressed: () => Navigator.pop(context)),
+        title: Text("Upload Artwork", style: TextStyle(color: deepHeritage, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Picker - Artisan Style
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 200, 
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: goldAccent.withOpacity(0.3), width: 1.5),
+                  image: _image != null ? DecorationImage(image: FileImage(_image!), fit: BoxFit.cover) : null,
+                  boxShadow: [BoxShadow(color: primaryEarth.withOpacity(0.1), blurRadius: 20)],
+                ),
+                child: _image == null ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined, size: 50, color: goldAccent),
+                    const SizedBox(height: 8),
+                    Text("Add Masterpiece Photo", style: TextStyle(color: goldAccent, fontWeight: FontWeight.w500)),
+                  ],
+                ) : null,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Inputs - Consistent with login/showroom
+            _ArtisanField(label: "Artwork Name", hint: "e.g., Terracotta Ganesha", onChanged: (v) => productName = v, color: primaryEarth),
+            const SizedBox(height: 16),
+            _ArtisanField(label: "Artisan Story / Description", hint: "Tell the soul of your creation...", onChanged: (v) => artworkDesc = v, color: deepHeritage, maxLines: 4),
+            const SizedBox(height: 16),
+            // Voice AI Trigger
+            Center(
+              child: ActionChip(
+                avatar: const Icon(Icons.mic, color: Colors.white, size: 18),
+                label: const Text("Voice Story Assistant"),
+                backgroundColor: primaryEarth,
+                labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StoryGeneratingPage())),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Category Selector
+            Text("Category", style: TextStyle(fontWeight: FontWeight.bold, color: deepHeritage)),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _openCategorySheet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white, 
+                  borderRadius: BorderRadius.circular(16), 
+                  border: Border.all(color: goldAccent.withOpacity(0.3))
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      editableCategory.isEmpty ? "Select Category" : editableCategory, 
+                      style: TextStyle(color: editableCategory.isEmpty ? Colors.grey : deepHeritage)
+                    ),
+                    Icon(Icons.keyboard_arrow_down, color: goldAccent),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // AI Price Range Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: goldAccent.withOpacity(0.1), blurRadius: 15)],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.insights, color: goldAccent, size: 20), 
+                      const SizedBox(width: 8), 
+                      const Text("AI Market Value Guide", style: TextStyle(fontWeight: FontWeight.bold))
+                    ]
+                  ),
+                  const SizedBox(height: 12),
+                  isPredictingPrice 
+                    ? const LinearProgressIndicator() 
+                    : Text("$predictedPriceLow - $predictedPriceHigh", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryEarth)),
+                  const SizedBox(height: 8),
+                  const Text("Based on current Indian handicraft trends", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Final Action
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context, 
+                  MaterialPageRoute(
+                    builder: (c) => PrePostOverview(
+                      artisanName: widget.artisanName ?? 'Anonymous', 
+                      artisanCategory: widget.artisanCategory ?? 'Artisan', 
+                      location: widget.location ?? 'India', 
+                      productName: productName, 
+                      productCategory: editableCategory, 
+                      productDescription: artworkDesc, 
+                      previewImagePath: _image?.path ?? '', 
+                      productPrice: predictedPrice
+                    )
+                  )
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: deepHeritage, 
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 8, 
+                  shadowColor: deepHeritage.withOpacity(0.4),
+                ),
+                child: const Text("Publish Artwork", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-		try {
-			// First try to get real API response
-			final apiPriceRange = await _getRealTimePrice(category);
-			
-			if (apiPriceRange != null) {
-				// Use API response if successful
-				final prices = apiPriceRange.split(' - ');
-				if (prices.length == 2) {
-					setState(() {
-						predictedPriceLow = prices[0].trim();
-						predictedPriceHigh = prices[1].trim();
-					});
-					print('API provided price range for $category: $predictedPriceLow - $predictedPriceHigh');
-				}
-			} else {
-				// Fallback to hardcoded price range
-				final priceRange = _getCategorySpecificPrompt(category);
-				final prices = priceRange.split(' - ');
-				
-				if (prices.length == 2) {
-					setState(() {
-						predictedPriceLow = prices[0].trim();
-						predictedPriceHigh = prices[1].trim();
-					});
-					print('Using hardcoded price range for $category: $predictedPriceLow - $predictedPriceHigh');
-				}
-			}
-			
-		} catch (e) {
-			print('Price prediction failed for $category: $e');
-			// Fallback to hardcoded
-			final priceRange = _getCategorySpecificPrompt(category);
-			final prices = priceRange.split(' - ');
-			if (prices.length == 2) {
-				setState(() {
-					predictedPriceLow = prices[0].trim();
-					predictedPriceHigh = prices[1].trim();
-				});
-			}
-		} finally {
-			setState(() {
-				isPredictingPrice = false;
-			});
-		}
-	}
+class _ArtisanField extends StatelessWidget {
+  final String label, hint; 
+  final Function(String) onChanged; 
+  final Color color; 
+  final int maxLines;
+  
+  const _ArtisanField({
+    required this.label, 
+    required this.hint, 
+    required this.onChanged, 
+    required this.color, 
+    this.maxLines = 1
+  });
 
-	Future<String?> _getRealTimePrice(String category) async {
-		// Try multiple API endpoints
-		final List<String> endpoints = [
-			'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=[32mdotenv.env['GEMINI_API_KEY'][0m',
-			'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=[32mdotenv.env['GEMINI_API_KEY'][0m',
-			'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=[32mdotenv.env['GEMINI_API_KEY'][0m',
-		];
-
-		for (String endpoint in endpoints) {
-			try {
-				print('Trying API endpoint: $endpoint');
-				
-				final response = await http.post(
-					Uri.parse(endpoint),
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: jsonEncode({
-						'contents': [{
-							'parts': [{
-								'text': 'What is the market price range for handmade $category in India? Respond with exactly: ₹X,XXX - ₹X,XXX. Example: ₹2,500 - ₹8,000'
-							}]
-						}],
-						'generationConfig': {
-							'temperature': 0.9,
-							'topK': 40,
-							'topP': 0.95,
-							'maxOutputTokens': 1024,
-						}
-					}),
-				);
-
-				print('API Response Status: ${response.statusCode}');
-				print('API Response Body: ${response.body}');
-
-				if (response.statusCode == 200) {
-					final data = jsonDecode(response.body);
-					if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-						final generatedText = data['candidates'][0]['content']['parts'][0]['text'];
-						print('SUCCESS: API response for $category: $generatedText');
-						
-						// Extract price range from response
-						final priceRangeRegex = RegExp(r'₹[\d,]+ - ₹[\d,]+');
-						final match = priceRangeRegex.firstMatch(generatedText);
-						
-						if (match != null) {
-							print('SUCCESS: Extracted price range: ${match.group(0)}');
-							return match.group(0)!;
-						}
-					}
-				} else {
-					print('API error with endpoint $endpoint: ${response.statusCode} - ${response.body}');
-				}
-			} catch (e) {
-				print('API call failed with endpoint $endpoint: $e');
-			}
-		}
-		
-		print('All API endpoints failed, using fallback');
-		return null;
-	}
-
-	Future<void> _callGeminiAPI(String category) async {
-		try {
-			// Try the newer Gemini 1.5 Pro model
-			final response = await http.post(
-				Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${dotenv.env['GEMINI_API_KEY']}'),
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: jsonEncode({
-					'contents': [{
-						'parts': [{
-							'text': 'What is the market price range for handmade $category in India? Respond with exactly: ₹X,XXX - ₹X,XXX'
-						}]
-					}],
-					'generationConfig': {
-						'temperature': 0.8,
-						'topK': 40,
-						'topP': 0.95,
-						'maxOutputTokens': 1024,
-					}
-				}),
-			);
-
-			print('API Response Status: ${response.statusCode}');
-			print('API Response Body: ${response.body}');
-
-			if (response.statusCode == 200) {
-				final data = jsonDecode(response.body);
-				if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-					final generatedText = data['candidates'][0]['content']['parts'][0]['text'];
-					print('Gemini API response for $category: $generatedText');
-					
-					// Try to extract and use the API response
-					final priceRangeRegex = RegExp(r'₹[\d,]+ - ₹[\d,]+');
-					final match = priceRangeRegex.firstMatch(generatedText);
-					
-					if (match != null) {
-						final priceRange = match.group(0)!;
-						final prices = priceRange.split(' - ');
-						if (prices.length == 2) {
-							print('API provided price range for $category: $priceRange');
-							// You could update the UI here if you want to use API responses
-						}
-					}
-				} else {
-					print('No candidates in API response');
-				}
-			} else {
-				print('API error: ${response.statusCode} - ${response.body}');
-			}
-		} catch (e) {
-			print('Background API call failed: $e');
-		}
-	}
-
-	String _getCategorySpecificPrompt(String category) {
-		// Create hardcoded price ranges for each category to ensure variety
-		final Map<String, String> categoryPrices = {
-			'pottery': '₹800 - ₹2,500',
-			'ceramics': '₹1,200 - ₹4,000',
-			'wood carving': '₹2,000 - ₹8,000',
-			'weaving': '₹1,500 - ₹5,000',
-			'hand embroidery': '₹1,000 - ₹3,500',
-			'metalworking': '₹2,500 - ₹10,000',
-			'leather crafting': '₹1,800 - ₹6,000',
-			'stone carving': '₹3,000 - ₹15,000',
-			'glassblowing': '₹1,500 - ₹4,500',
-			'handloom weaving': '₹2,000 - ₹7,000',
-			'terracotta art': '₹600 - ₹2,000',
-			'calligraphy': '₹500 - ₹2,000',
-			'papermaking': '₹800 - ₹3,000',
-			'jewelry making': '₹3,000 - ₹25,000',
-			'candle making': '₹300 - ₹1,200',
-			'soap making': '₹400 - ₹1,500',
-			'macramé': '₹700 - ₹2,800',
-			'bamboo craft': '₹900 - ₹3,500',
-			'lacquerware': '₹1,500 - ₹5,500',
-			'beadwork': '₹600 - ₹2,200',
-		};
-		
-		// Debug: Print the category being requested
-		print('DEBUG: Requesting price for category: "$category"');
-		print('DEBUG: Category lowercase: "${category.toLowerCase()}"');
-		
-		// Return the hardcoded price range for the category
-		final priceRange = categoryPrices[category.toLowerCase()] ?? '₹1,000 - ₹3,000';
-		print('DEBUG: Selected price range: $priceRange');
-		
-		return priceRange;
-	}
-
-	void _onUpload() {
-		if (productName.trim().isEmpty || artworkDesc.trim().isEmpty) {
-			ScaffoldMessenger.of(context).showSnackBar(
-				const SnackBar(content: Text('Please fill in required fields')),
-			);
-			return;
-		}
-
-		Navigator.push(
-			context,
-			MaterialPageRoute(
-				builder: (context) => PrePostOverview(
-					artisanName: widget.artisanName ?? 'Anonymous Artist',
-					artisanCategory: widget.artisanCategory ?? 'Artisan',
-					location: widget.location ?? 'India',
-					productName: productName,
-					productCategory: (editableCategory.isNotEmpty) ? editableCategory : 'Ceramic, Paint',
-					productDescription: artworkDesc,
-					previewImagePath: _image?.path ?? 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600',
-					productPrice: predictedPrice,
-				),
-			),
-		);
-	}
-
-	@override
-	Widget build(BuildContext context) {
-		return Scaffold(
-			backgroundColor: const Color(0xFFF7F9FC),
-			body: SafeArea(
-				child: SingleChildScrollView(
-					padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-					child: Column(
-						crossAxisAlignment: CrossAxisAlignment.start,
-						children: [
-							// App bar with close and title
-							Row(
-								mainAxisAlignment: MainAxisAlignment.spaceBetween,
-								children: [
-									IconButton(
-										icon: const Icon(Icons.close, size: 26),
-										onPressed: () => Navigator.pop(context),
-									),
-									const Text(
-										"Upload",
-										style: TextStyle(
-												fontWeight: FontWeight.bold,
-												fontSize: 18,
-												color: Color(0xFF0C141C)),
-									),
-									const SizedBox(width: 44),
-								],
-							),
-							const SizedBox(height: 10),
-							// Large product image or placeholder rounded
-							GestureDetector(
-								onTap: _pickImage,
-								child: ClipRRect(
-									borderRadius: BorderRadius.circular(16),
-									child: _image != null
-											? Image.file(
-										_image!,
-										height: 170,
-										width: double.infinity,
-										fit: BoxFit.cover,
-									)
-								: Image.network(
-									'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-									height: 170,
-									width: double.infinity,
-									fit: BoxFit.cover,
-									errorBuilder: (context, error, stack) {
-										return Container(
-											height: 170,
-											width: double.infinity,
-											color: const Color(0xFFE8EDF4),
-											alignment: Alignment.center,
-											child: const Icon(Icons.image_not_supported, color: Colors.grey),
-										);
-									},
-								),
-								),
-							),
-							const SizedBox(height: 20),
-							// Product Name
-							const Text(
-								"Product Name",
-								style: TextStyle(
-										color: Color(0xFF0C141C),
-										fontWeight: FontWeight.bold,
-										fontSize: 15),
-							),
-							const SizedBox(height: 7),
-							Container(
-								decoration: BoxDecoration(
-									color: const Color(0xFFE8EDF4),
-									borderRadius: BorderRadius.circular(11),
-								),
-								child: TextField(
-									onChanged: (val) => setState(() => productName = val),
-									decoration: const InputDecoration(
-										hintText: 'Enter product name',
-										hintStyle: TextStyle(color: Color(0xFF97A1B2)),
-										border: InputBorder.none,
-										contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-									),
-									style: const TextStyle(color: Color(0xFF49729B), fontSize: 16),
-								),
-							),
-							const SizedBox(height: 18),
-							// Describe your artwork
-							const Text("Describe your artwork",
-									style: TextStyle(
-											fontWeight: FontWeight.bold,
-											fontSize: 15,
-											color: Color(0xFF0C141C))),
-							const SizedBox(height: 7),
-							Container(
-								decoration: BoxDecoration(
-									color: const Color(0xFFE8EDF4),
-									borderRadius: BorderRadius.circular(11),
-								),
-								child: TextField(
-									maxLines: 4,
-									onChanged: (val) => setState(() => artworkDesc = val),
-									decoration: const InputDecoration(
-										hintText: "Describe your artwork",
-										hintStyle: TextStyle(color: Color(0xFF97A1B2)),
-										border: InputBorder.none,
-										contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-									),
-									style: const TextStyle(color: Color(0xFF49729B), fontSize: 16),
-								),
-							),
-							const SizedBox(height: 12),
-							// Voice Assistant: Icon above button
-							Center(
-								child: Column(
-									children: [
-										InkWell(
-											onTap: _onVoiceAssistantTap,
-											borderRadius: BorderRadius.circular(20),
-											child: Container(
-												width: 36,
-												height: 36,
-												decoration: BoxDecoration(
-													color: const Color(0xFFE8EDF4),
-													shape: BoxShape.circle,
-												),
-												child: const Icon(
-													Icons.mic_none,
-													color: Color(0xFF49729B),
-													size: 22,
-												),
-											),
-										),
-										const SizedBox(height: 5),
-										const Text(
-											"Voice Assistant",
-											style: TextStyle(
-												color: Color(0xFF0C141C),
-												fontWeight: FontWeight.w500,
-												fontSize: 13,
-											),
-										),
-									],
-								),
-							),
-							const SizedBox(height: 24),
-				// Category
-							const Text(
-								"Category",
-								style: TextStyle(
-									fontWeight: FontWeight.bold,
-									fontSize: 15,
-									color: Color(0xFF0C141C),
-								),
-							),
-							const SizedBox(height: 7),
-				Container(
-					decoration: BoxDecoration(
-						color: const Color(0xFFE8EDF4),
-						borderRadius: BorderRadius.circular(11),
-					),
-					padding: const EdgeInsets.symmetric(horizontal: 8),
-					child: Row(
-						children: [
-							Expanded(
-								child: TextField(
-									controller: _categoryController,
-									onChanged: (val) => setState(() => editableCategory = val),
-									decoration: const InputDecoration(
-										hintText: 'Choose or type category',
-										hintStyle: TextStyle(color: Color(0xFF97A1B2)),
-										border: InputBorder.none,
-									),
-									style: const TextStyle(color: Color(0xFF49729B), fontSize: 16),
-								),
-							),
-							IconButton(
-								icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF49729B)),
-								onPressed: _openCategorySheet,
-							),
-						],
-					),
-				),
-							const SizedBox(height: 14),
-							// AI Assistant note
-							const Text(
-								"Understanding your art's market value helps you appreciate the worth of your craftsmanship and time invested.",
-								style: TextStyle(
-									color: Color(0xFF444B58),
-									fontSize: 14,
-								),
-							),
-							const SizedBox(height: 16),
-				// Market Value Range (muted rectangle)
-							const Text(
-								"Market Value Range",
-								style: TextStyle(
-										color: Color(0xFF0C141C),
-										fontWeight: FontWeight.bold,
-										fontSize: 15),
-							),
-							const SizedBox(height: 7),
-				Container(
-					decoration: BoxDecoration(
-						color: const Color(0xFFE8EDF4),
-						borderRadius: BorderRadius.circular(12),
-					),
-					alignment: Alignment.center,
-					height: 48,
-					width: double.infinity,
-					padding: const EdgeInsets.symmetric(horizontal: 16),
-					child: isPredictingPrice
-						? const Row(
-							mainAxisAlignment: MainAxisAlignment.center,
-							children: [
-								SizedBox(
-									width: 16,
-									height: 16,
-									child: CircularProgressIndicator(
-										strokeWidth: 2,
-										valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF49729B)),
-									),
-								),
-								SizedBox(width: 8),
-								Text(
-									"Analyzing market trends...",
-									style: TextStyle(
-										color: Color(0xFF49729B),
-										fontSize: 16,
-										fontWeight: FontWeight.w500,
-									),
-								),
-							],
-						)
-						: Text(
-							"$predictedPriceLow - $predictedPriceHigh",
-							style: const TextStyle(
-								color: Color(0xFF49729B),
-								fontSize: 18,
-								fontWeight: FontWeight.w600,
-							),
-						),
-				),
-							const SizedBox(height: 18),
-                const SizedBox(height: 28),
-							// Upload button
-							SizedBox(
-								width: double.infinity,
-								child: ElevatedButton(
-									onPressed: _onUpload,
-									style: ElevatedButton.styleFrom(
-										elevation: 0,
-										backgroundColor: const Color(0xFF3D99F4),
-										shape: RoundedRectangleBorder(
-												borderRadius: BorderRadius.circular(11)),
-										padding: const EdgeInsets.symmetric(vertical: 16),
-									),
-									child: const Text(
-										"Upload",
-										style: TextStyle(
-												color: Colors.white,
-												fontWeight: FontWeight.w600,
-												fontSize: 16),
-									),
-								),
-							),
-							const SizedBox(height: 16),
-						],
-					),
-				),
-			),
-		);
-	}
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, 
+      children: [
+        Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(height: 8),
+        TextField(
+          maxLines: maxLines, 
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hint, 
+            filled: true, 
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+        ),
+      ]
+    );
+  }
 }

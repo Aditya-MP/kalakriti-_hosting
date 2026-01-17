@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'SearchPage.dart';
-import 'depth0_frame0_screen.dart'; // Corrected import
+import 'depth0_frame0_screen.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'landing_screen.dart';
@@ -16,388 +16,205 @@ class LatestArtwork extends StatefulWidget {
 }
 
 class _LatestArtworkState extends State<LatestArtwork> {
+  // Artisan Theme Palette
+  final Color primaryEarth = const Color(0xFFE27D5F);
+  final Color goldAccent = const Color(0xFFD4A574);
+  final Color clayBg = const Color(0xFFF5F2E9);
+  final Color deepHeritage = const Color(0xFF4A7043);
+
   int _selectedIndex = 0;
 
   void _onNavTapped(int index) {
     if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SearchPage()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchPage()));
     } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const RasikProfile()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const RasikProfile()));
     } else {
-      setState(() {
-        _selectedIndex = index;
-      });
+      setState(() => _selectedIndex = index);
     }
   }
 
-  // Method to handle product card tap
   void _onProductTap(Map<String, dynamic> productData) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Depth0Frame0(productData: productData), // Corrected class name
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Depth0Frame0(productData: productData)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: clayBg,
       body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
-          cacheExtent: 800,
-          children: [
-            // Top bar with avatar and settings
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-              child: Row(
-                children: [
-                  // Avatar
-                  ClipOval(
-                    child: Image.network(
-                      "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/6rzwd616_expires_30_days.png",
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
+          slivers: [
+            // Artisan Top Bar
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: goldAccent, width: 2)),
+                      child: const CircleAvatar(radius: 20, backgroundImage: NetworkImage("https://picsum.photos/150/150?random=1")),
                     ),
-                  ),
-                  const Spacer(),
-                  PopupMenuButton<String>(
-                    icon: const Icon(
-                      Icons.settings_outlined,
-                      color: Colors.black54,
-                      size: 26,
+                    const SizedBox(width: 12),
+                    Text("KalaKrithi", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: deepHeritage, letterSpacing: 0.5, shadows: [Shadow(color: goldAccent.withOpacity(0.3), offset: Offset(1, 1), blurRadius: 2)])),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.notifications_none, color: deepHeritage),
+                      onPressed: () {},
                     ),
-                    onSelected: (value) async {
-                      if (value == 'sign_out') {
-                        await FirebaseAuth.instance.signOut();
-                        if (!mounted) return;
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (_) => const LandingScreen(),
-                          ),
-                          (route) => false,
-                        );
-                      } else if (value == 'delete_last_3') {
-                        try {
-                          final user = FirebaseAuth.instance.currentUser;
-                          if (user == null) return;
-                          final qs = await firestoreInstance
-                              .collection('products')
-                              .where('showroomId', isEqualTo: user.uid)
-                              .orderBy('createdAt', descending: true)
-                              .limit(3)
-                              .get();
-                          int deleted = 0;
-                          for (final doc in qs.docs) {
-                            final data = doc.data();
-                            final List images = (data['images'] as List?) ?? [];
-                            for (final img in images) {
-                              final url = img is String ? img : '';
-                              if (url.startsWith('http') && url.contains('firebasestorage')) {
-                                try {
-                                  await FirebaseStorage.instance.refFromURL(url).delete();
-                                } catch (_) {}
-                              }
-                            }
-                            await doc.reference.delete();
-                            deleted++;
-                          }
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Deleted $deleted post(s)')),
-                          );
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Delete failed: $e')),
-                          );
-                        }
-                      }
-                    },
-                    itemBuilder: (context) {
-                      return const [
-                        PopupMenuItem<String>(
-                          value: 'sign_out',
-                          child: Text('Sign Out'),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'delete_last_3',
-                          child: Text('Delete My Last 3 Posts'),
-                        ),
-                      ];
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-              child: Text(
-                "Latest Artworks",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  letterSpacing: 0,
-                  color: Colors.black,
+                    _buildSettingsMenu(),
+                  ],
                 ),
               ),
             ),
-            // Dynamic: recently published products (newest first)
-            StreamBuilder<QuerySnapshot>(
-              stream: firestoreInstance
-                  .collection('products')
-                  // Single order avoids composite index requirement
-                  .orderBy('createdAt', descending: true)
-                  .limit(20)
-                  .snapshots(),
+            // Hero Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [primaryEarth, goldAccent]),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [BoxShadow(color: primaryEarth.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(right: -20, bottom: -20, child: Icon(Icons.brush, size: 100, color: Colors.white.withOpacity(0.2))),
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("Discovery Gallery", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                            Text("Support authentic Indian artisans", style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8), child: Text("Latest Masterpieces", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
+            // Dynamic Stream of Artworks
+            StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('products').orderBy('timestamp', descending: true).limit(20).snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                final docs = snapshot.data!.docs;
-                return Column(
-                  children: docs.map((d) {
-                    final data = d.data() as Map<String, dynamic>;
-                    final List images = (data['images'] as List?) ?? [];
-                    final String image = images.isNotEmpty && (images.first as String).isNotEmpty
-                        ? (images.first as String)
-                        : '';
-                    final String title = (data['title'] ?? 'Untitled') as String;
-                    final String desc = (data['description'] ?? '') as String;
-                    final String artist = 'You';
-                    return _artworkCard(
-                      image: image.isNotEmpty
-                          ? image
-                          : "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/bm9srn9f_expires_30_days.png",
-                      title: title,
-                      desc: desc,
-                      artist: artist,
-                      likeCount: (data['likeCount'] ?? 0).toString(),
-                      commentCount: (data['commentCount'] ?? 0).toString(),
-                      iconLeft: Icons.favorite_border,
-                      iconRight: Icons.bookmark_border,
-                      onTap: () {
-                        _onProductTap({
-                          'image': image,
-                          'title': title,
-                          'desc': desc,
-                          'artist': artist,
-                          'likeCount': (data['likeCount'] ?? 0).toString(),
-                          'commentCount': (data['commentCount'] ?? 0).toString(),
-                        });
-                      },
-                    );
-                  }).toList(),
+                if (snapshot.connectionState == ConnectionState.waiting) return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SliverToBoxAdapter(child: Center(child: Text('No artworks yet')));
+                
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final data = snapshot.data!.docs[index].data();
+                      final String image = data['image'] ?? 'https://picsum.photos/400/300?random=2';
+                      return _ArtCard(
+                        image: image, 
+                        title: data['title'] ?? 'Untitled', 
+                        desc: data['description'] ?? '', 
+                        artist: data['artisan'] ?? 'Master Artisan', 
+                        likes: '0', 
+                        primary: primaryEarth, 
+                        gold: goldAccent, 
+                        heritage: deepHeritage,
+                        onTap: () => _onProductTap(<String, dynamic>{'image': image, 'title': data['title'], 'desc': data['description']}),
+                      );
+                    },
+                    childCount: snapshot.data!.docs.length,
+                  ),
                 );
-              },
-            ),
-
-            const SizedBox(height: 10),
-
-            // Default sample cards (restored)
-            _artworkCard(
-              image: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/bm9srn9f_expires_30_days.png",
-              title: "Ceramic Vase",
-              desc: "Handcrafted ceramic vase with intricate floral patterns.",
-              artist: "Anya Sharma",
-              likeCount: "234",
-              commentCount: "120",
-              iconLeft: Icons.favorite_border,
-              iconRight: Icons.bookmark_border,
-              onTap: () {
-                _onProductTap({
-                  'image': "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/bm9srn9f_expires_30_days.png",
-                  'title': "Ceramic Vase",
-                  'desc': "Handcrafted ceramic vase with intricate floral patterns.",
-                  'artist': "Anya Sharma",
-                  'likeCount': "234",
-                  'commentCount': "120",
-                });
-              },
-            ),
-            _artworkCard(
-              image: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/dzofg6nq_expires_30_days.png",
-              title: "Wooden Sculpture",
-              desc: "Detailed wooden sculpture of a mythical creature.",
-              artist: "Rohan Verma",
-              likeCount: "187",
-              commentCount: "95",
-              iconLeft: Icons.favorite_border,
-              iconRight: Icons.bookmark_border,
-              onTap: () {
-                _onProductTap({
-                  'image': "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/dzofg6nq_expires_30_days.png",
-                  'title': "Wooden Sculpture",
-                  'desc': "Detailed wooden sculpture of a mythical creature.",
-                  'artist': "Rohan Verma",
-                  'likeCount': "187",
-                  'commentCount': "95",
-                });
-              },
-            ),
-            _artworkCard(
-              image: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/kri0ziim_expires_30_days.png",
-              title: "Embroidered Textile",
-              desc: "Vibrant embroidered textile depicting a traditional scene.",
-              artist: "Kavya Patel",
-              likeCount: "210",
-              commentCount: "112",
-              iconLeft: Icons.favorite_border,
-              iconRight: Icons.bookmark_border,
-              onTap: () {
-                _onProductTap({
-                  'image': "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/kri0ziim_expires_30_days.png",
-                  'title': "Embroidered Textile",
-                  'desc': "Vibrant embroidered textile depicting a traditional scene.",
-                  'artist': "Kavya Patel",
-                  'likeCount': "210",
-                  'commentCount': "112",
-                });
               },
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        currentIndex: _selectedIndex,
-        onTap: _onNavTapped,
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search, size: 28),
-            label: 'Explore',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline, size: 28),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.white, currentIndex: _selectedIndex, onTap: _onNavTapped,
+          selectedItemColor: deepHeritage, unselectedItemColor: Colors.grey, elevation: 0,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Studio'),
+            BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Discover'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_2_outlined), label: 'Rasik'),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _artworkCard({
-    required String image,
-    required String title,
-    required String desc,
-    required String artist,
-    required String likeCount,
-    required String commentCount,
-    required IconData iconLeft,
-    required IconData iconRight,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildSettingsMenu() {
+    return PopupMenuButton(
+      icon: Icon(Icons.more_vert, color: deepHeritage),
+      itemBuilder: (context) => [
+        const PopupMenuItem(value: 'sign_out', child: Text('Sign Out')),
+        const PopupMenuItem(value: 'delete_last_3', child: Text('Manage Collection')),
+      ],
+      onSelected: (value) async {
+        if (value == 'sign_out') {
+          await FirebaseAuth.instance.signOut();
+          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LandingScreen()), (r) => false);
+        }
+      },
+    );
+  }
+}
+
+class _ArtCard extends StatelessWidget {
+  final String image, title, desc, artist, likes; 
+  final Color primary, gold, heritage; 
+  final VoidCallback onTap;
+  
+  const _ArtCard({
+    required this.image, 
+    required this.title, 
+    required this.desc, 
+    required this.artist, 
+    required this.likes, 
+    required this.primary, 
+    required this.gold, 
+    required this.heritage, 
+    required this.onTap
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 8))]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                image,
-                height: 148,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) {
-                  return Container(
-                    height: 148,
-                    width: double.infinity,
-                    color: const Color(0xFFF0F0F0),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.black,
-                letterSpacing: 0,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              desc,
-              style: const TextStyle(
-                color: Color(0xFF757575),
-                fontSize: 15.0,
-                height: 1.4,
-              ),
-            ),
-            Text(
-              "by $artist",
-              style: const TextStyle(
-                color: Color(0xFF757575),
-                fontSize: 15.0,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
+            Stack(
               children: [
-                Icon(
-                  iconLeft,
-                  color: const Color(0xFFB0AAA4),
-                  size: 20,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  likeCount,
-                  style: const TextStyle(
-                    color: Color(0xFF757575),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Icon(
-                  iconRight,
-                  color: const Color(0xFFB0AAA4),
-                  size: 20,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  commentCount,
-                  style: const TextStyle(
-                    color: Color(0xFF757575),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
+                ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), child: Image.network(image, height: 180, width: double.infinity, fit: BoxFit.cover)),
+                Positioned(top: 16, right: 16, child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Icon(Icons.favorite_border, color: primary, size: 20))),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: heritage)),
+                    Row(children: [Icon(Icons.remove_red_eye_outlined, size: 16, color: gold), const SizedBox(width: 4), Text(likes, style: const TextStyle(fontWeight: FontWeight.w600))]),
+                  ]),
+                  const SizedBox(height: 8),
+                  Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[600], height: 1.4)),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    CircleAvatar(radius: 12, backgroundColor: gold.withOpacity(0.2), child: Icon(Icons.person, size: 14, color: gold)),
+                    const SizedBox(width: 8),
+                    Text("by $artist", style: TextStyle(fontWeight: FontWeight.w600, color: heritage.withOpacity(0.8))),
+                  ]),
+                ],
+              ),
             ),
           ],
         ),

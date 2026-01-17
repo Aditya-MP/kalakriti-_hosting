@@ -12,10 +12,19 @@
           "package_name": "com.example.kalkrithi1"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "733455434716-abc123def456ghi789jkl012mno345pq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kalkrithi1",
+            "certificate_hash": "331011a56a98214d25cda998f079f8f533fc55d6"
+          }
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyB6x6dQLGcG5iEO3mNfLzsQIDToUQTAfmE"
+          "current_key": "AIzaSyB5kLGD7c_9hJSqUdU-ehTDY2TbHiiEUZs"
         }
       ],
       "services": {

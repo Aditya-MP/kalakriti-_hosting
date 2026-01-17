@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kalakriti_2_0/screens/SocialLink.dart';
+import 'SocialLink.dart';
 
 class Depth0Frame0 extends StatefulWidget {
   final VoidCallback? onLogout;
-  final Map<String, dynamic>? productData;
-
+  final Map? productData;
   const Depth0Frame0({super.key, this.onLogout, this.productData});
 
   @override
@@ -12,276 +11,209 @@ class Depth0Frame0 extends StatefulWidget {
 }
 
 class Depth0Frame0State extends State<Depth0Frame0> {
+  // Artisan Theme Palette
+  final Color primaryEarth = const Color(0xFFE27D5F);
+  final Color goldAccent = const Color(0xFFD4A574);
+  final Color clayBg = const Color(0xFFF5F2E9);
+  final Color deepHeritage = const Color(0xFF4A7043);
+
+  int currentImageIndex = 0;
+  PageController _pageController = PageController();
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F6F9),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 16, bottom: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product Image Carousel & Details with Share Icon
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        const Icon(Icons.share_outlined, color: Colors.black, size: 24),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 200,
-                      child: PageView.builder(
-                        controller: PageController(viewportFraction: 0.75),
-                        itemCount: 3,
-                        itemBuilder: (context, index) {
-                          final images = [
-                            widget.productData?['image'] ?? "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/bm9srn9f_expires_30_days.png",
-                            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-                            "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-                          ];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
-                                images[index],
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      widget.productData?['title'] ?? "Handcrafted Ceramic Vase",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.productData?['desc'] ?? "This unique ceramic vase is handcrafted by artisan Anya Sharma, featuring intricate detailing and a smooth, matte finish. Perfect for displaying flowers or as a standalone art piece.",
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black87,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-              // About the Artist Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Meet The Makers",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        ClipOval(
-                          child: Image.network(
-                            "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/6rzwd616_expires_30_days.png",
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text("Anya Sharma", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text("Ceramic Artist", style: TextStyle(fontSize: 14, color: Colors.grey)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      "Anya Sharma is a renowned ceramic artist based in Jaipur, India. Her work is inspired by traditional Indian pottery and contemporary design, creating pieces that are both functional and artistic.",
-                      style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.4),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Hear From Them",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Column(
-                          children: [
-                            ClipOval(
-                              child: Image.network(
-                                "https://randomuser.me/api/portraits/women/44.jpg",
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text("Priya Patel", style: TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(width: 24),
-                        Column(
-                          children: [
-                            ClipOval(
-                              child: Image.network(
-                                "https://randomuser.me/api/portraits/men/46.jpg",
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text("Vikram Singh", style: TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    const Icon(Icons.favorite_border, color: Color(0xFFB0AAA4)),
-                    const SizedBox(width: 6),
-                    const Text("12", style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(width: 24),
-                    const Icon(Icons.mode_comment_outlined, color: Color(0xFFB0AAA4)),
-                    const SizedBox(width: 6),
-                    const Text("2", style: TextStyle(fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to SocialLink page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SocialLink(
-                            productId: widget.productData?['id'], // Pass product ID if available
-                            artisanName: "Anya Sharma", // Pass actual artisan data
-                            artisanEmail: "anya@example.com",
-                            artisanAvatarUrl: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/BSML5JvnyV/6rzwd616_expires_30_days.png",
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      "Inquire to Buy",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
-  Widget _buildCustomerReview({
-    required String name,
-    required String comment,
-    required int rating,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            name,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+  @override
+  Widget build(BuildContext context) {
+    final images = [
+      widget.productData?['image'] ?? "https://picsum.photos/600/400?random=30",
+      "https://picsum.photos/600/400?random=31",
+      "https://picsum.photos/600/400?random=32",
+    ];
+
+    return Scaffold(
+      backgroundColor: clayBg,
+      body: CustomScrollView(
+        slivers: [
+          // Hero Image Sliver App Bar
+          SliverAppBar(
+            expandedHeight: 320,
+            pinned: true,
+            backgroundColor: deepHeritage,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.share_outlined, color: Colors.white),
+                onPressed: () {},
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Hero(
+                    tag: 'product_${widget.productData?['id'] ?? 'hero'}',
+                    child: Image.network(
+                      images[currentImageIndex], 
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.image, size: 100, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  // Image Indicators
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(images.length, (i) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: currentImageIndex == i ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: currentImageIndex == i ? Colors.white : Colors.white.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              for (int i = 0; i < 5; i++)
-                Icon(
-                  i < rating ? Icons.star : Icons.star_border,
-                  color: i < rating ? Colors.amber : Colors.grey,
-                  size: 16,
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            comment,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
+          // Product Details
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    widget.productData?['title'] ?? "Handcrafted Terracotta Vase",
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: deepHeritage),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    widget.productData?['desc'] ?? "Handcrafted by Anya Sharma in Jaipur, this terracotta vase features intricate hand-painted motifs inspired by Rajasthan's heritage. Each piece tells a story of tradition and craftsmanship.",
+                    style: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 40),
+                  // Artisan Spotlight
+                  Text("The Master Artisan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: deepHeritage)),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: goldAccent.withOpacity(0.2)),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15)],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 70, 
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: const NetworkImage("https://picsum.photos/200?random=40"), 
+                              fit: BoxFit.cover,
+                              onError: (exception, stackTrace) {},
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Anya Sharma", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: deepHeritage)),
+                              Text("3rd Gen Potter • Jaipur", style: TextStyle(fontSize: 14, color: primaryEarth, fontWeight: FontWeight.w600)),
+                              Text("Handcrafts 12 unique pieces monthly using traditional wheel techniques.", style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Engagement Metrics
+                  Row(
+                    children: [
+                      _MetricCard(icon: Icons.favorite, count: "127", label: "Loved", color: primaryEarth),
+                      const SizedBox(width: 16),
+                      _MetricCard(icon: Icons.comment, count: "23", label: "Stories", color: goldAccent),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  // Inquiry Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 64,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => SocialLink(productId: widget.productData?['id']))
+                      ),
+                      icon: const Icon(Icons.contact_support, color: Colors.white),
+                      label: const Text("Inquiry to Buy", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: deepHeritage,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        elevation: 8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  final IconData icon; 
+  final String count, label; 
+  final Color color;
+  
+  const _MetricCard({required this.icon, required this.count, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    const Color deepHeritage = Color(0xFF4A7043);
+    
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12)],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: color),
+            const SizedBox(height: 8),
+            Text(count, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: deepHeritage)),
+            Text(label, style: TextStyle(fontSize: 14, color: color)),
+          ],
+        ),
       ),
     );
   }
