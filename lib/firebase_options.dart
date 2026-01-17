@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions web = FirebaseOptions(
-    apiKey: 'your-api-key',
+    apiKey: dotenv.env['FIREBASE_API_KEY_1'] ?? 'your-api-key',
     appId: '1:733455434716:web:8c87f0cb1acde20eef8519',
     messagingSenderId: '733455434716',
     projectId: 'kalakrithi-39f00',
@@ -61,7 +61,7 @@ class DefaultFirebaseOptions {
   );
 
   static FirebaseOptions android = FirebaseOptions(
-    apiKey: 'your-api-key',
+    apiKey: dotenv.env['FIREBASE_API_KEY_2'] ?? 'your-api-key',
     appId: '1:733455434716:android:ff4a5783b5e9acd8ef8519',
     messagingSenderId: '733455434716',
     projectId: 'kalakrithi-39f00',
